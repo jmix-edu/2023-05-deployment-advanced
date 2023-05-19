@@ -26,20 +26,6 @@ public class PmApplicationApplication {
         SpringApplication.run(PmApplicationApplication.class, args);
     }
 
-    @Bean
-    @Primary
-    @ConfigurationProperties("main.datasource")
-    DataSourceProperties dataSourceProperties() {
-        return new DataSourceProperties();
-    }
-
-    @Bean
-    @Primary
-    @ConfigurationProperties("main.datasource.hikari")
-    DataSource dataSource(DataSourceProperties dataSourceProperties) {
-        return dataSourceProperties.initializeDataSourceBuilder().build();
-    }
-
     @EventListener
     public void printApplicationUrl(ApplicationStartedEvent event) {
         LoggerFactory.getLogger(PmApplicationApplication.class).info("Application started at "
