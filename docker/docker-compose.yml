@@ -16,11 +16,49 @@ services:
       VAULT_HOST: jmix_pm_vault
 
   jmix_pm_postgres:
-    image: postgres:alpine
+    image: bitnami/pgpool:latest
     environment:
-      - POSTGRES_USER=jmix
-      - POSTGRES_PASSWORD=jmix
-      - POSTGRES_DB=pm-deployment
+      - PGPOOL_BACKEND_NODES=0:jmix_pm_postgres-1:5432,1:jmix_pm_postgres-2:5432
+      - PGPOOL_SR_CHECK_USER=postgres
+      - PGPOOL_SR_CHECK_PASSWORD=jmix
+      - PGPOOL_SR_CHECK_PERIOD=10
+      - PGPOOL_POSTGRES_USERNAME=jmix
+      - PGPOOL_POSTGRES_PASSWORD=jmix
+      - PGPOOL_ADMIN_USERNAME=admin
+      - PGPOOL_ADMIN_PASSWORD=postgres
+      - PGPOOL_HEALTH_CHECK_PERIOD=1
+      - PGPOOL_HEALTH_CHECK_TIMEOUT=1
+      - PGPOOL_HEALTH_CHECK_MAX_RETRIES=1
+      - PGPOOL_HEALTH_CHECK_RETRY_DELAY
+    depends_on:
+      - jmix_pm_postgres-1
+      - jmix_pm_postgres-2
+
+  jmix_pm_postgres-1:
+    image: bitnami/postgresql-repmgr:latest
+    environment:
+      - POSTGRESQL_POSTGRES_PASSWORD=jmix
+      - POSTGRESQL_USERNAME=jmix
+      - POSTGRESQL_PASSWORD=jmix
+      - POSTGRESQL_DATABASE=pm-deployment
+      - REPMGR_PASSWORD=repmgrpassword
+      - REPMGR_PRIMARY_HOST=jmix_pm_postgres-1
+      - REPMGR_PARTNER_NODES=jmix_pm_postgres-1,jmix_pm_postgres-2
+      - REPMGR_NODE_NAME=jmix_pm_postgres-1
+      - REPMGR_NODE_NETWORK_NAME=jmix_pm_postgres-1
+
+  jmix_pm_postgres-2:
+    image: bitnami/postgresql-repmgr:latest
+    environment:
+      - POSTGRESQL_POSTGRES_PASSWORD=jmix
+      - POSTGRESQL_USERNAME=jmix
+      - POSTGRESQL_PASSWORD=jmix
+      - POSTGRESQL_DATABASE=pm-deployment
+      - REPMGR_PASSWORD=repmgrpassword
+      - REPMGR_PRIMARY_HOST=jmix_pm_postgres-1
+      - REPMGR_PARTNER_NODES=jmix_pm_postgres-1,jmix_pm_postgres-2
+      - REPMGR_NODE_NAME=jmix_pm_postgres-2
+      - REPMGR_NODE_NETWORK_NAME=jmix_pm_postgres-2
 
   jmix_pm_vault:
     image: hashicorp/vault:latest
